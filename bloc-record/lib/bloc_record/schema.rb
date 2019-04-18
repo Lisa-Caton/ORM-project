@@ -16,13 +16,19 @@ module Schema
     @schema
   end
 
+  # returns the column names of a table
+
   def columns
     schema.keys
   end
 
+  # return the column names except id
+
   def attributes
     columns - ["id"]
   end
+
+  # returns a count of records in a table
 
   def count
     connection.execute(<<-SQL)[0][0]

@@ -1,4 +1,4 @@
-module BlocRecord
+ module BlocRecord
   module Utility
 
     extend self
@@ -11,10 +11,10 @@ module BlocRecord
       string.downcase
     end
 
-    def sql_string(value)
+    def sql_strings(value)
       case value
       when String
-        "#{value}"
+        "'#{value}'"
       when Numeric
         value.to_s
       else
@@ -32,7 +32,7 @@ module BlocRecord
     end
 
     def reload_obj(dirty_obj)
-      persisted_obj = dirty_obj.class.find(dirty_obj.id)
+      persisted_obj = dirty_obj.class.find_one(dirty_obj.id)
       dirty_obj.instance_variables.each do |instance_variable|
         dirty_obj.instance_variable_set(instance_variable, persisted_obj.instance_variable_get(instance_variable))
       end

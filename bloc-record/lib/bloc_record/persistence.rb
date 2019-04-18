@@ -29,6 +29,15 @@ module Persistence
   end
 
   module ClassMethods
+
+    # This method takes a hash called attrs
+    # Its values are converted to SQL strings and mapped into an array (vals)
+    # These values are used to form an INSERT INTO SQL statement.
+
+      # Remember, attributes is an array of the column names,
+      # while attrs is the hash passed in to the create method.
+      # We defined attributes in schema.rb.
+
     def create(attrs)
       attrs = BlocRecord::Utility.convert_keys(attrs)
       attrs.delete "id"
