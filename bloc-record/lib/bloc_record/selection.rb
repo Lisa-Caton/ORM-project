@@ -2,8 +2,6 @@ require 'sqlite3'
 
 module Selection
 
-  # retrieve one record
-
   def find_one(id)
     row = connection.get_first_row <<-SQL
       SELECT #{columns.join ","}
@@ -13,9 +11,6 @@ module Selection
 
     init_object_from_row(row)
   end
-
-  # method that can handle multiple ids
-    #id is joined into a string, which is passed into an SQL query that retrieves multiple records
 
   def find(*ids)
     if ids.length == 1
@@ -31,8 +26,6 @@ module Selection
     end
   end
 
-  # return all records matching the given condition
-
   def find_by(attribute, value)
     rows = connection.execute <<-SQL
       SELECT #{columns.join ","}
@@ -42,8 +35,6 @@ module Selection
 
     rows_to_array(rows)
   end
-
-  # returns more than one random object
 
   def take(num=1)
     if num > 1
@@ -60,8 +51,6 @@ module Selection
     end
   end
 
-  # we want to obtain a random contact each time we ask for one
-
   def take_one
     row = connection.get_first_row <<-SQL
       SELECT #{columns.join ","}
@@ -72,8 +61,6 @@ module Selection
 
     init_object_from_row(row)
   end
-
-  # return the first record
 
   def first
     row = connection.get_first_row <<-SQL
@@ -86,8 +73,6 @@ module Selection
     init_object_from_row(row)
   end
 
-  # return the last record
-
   def last
     row = connection.get_first_row <<-SQL
       SELECT #{columns.join ","}
@@ -99,15 +84,75 @@ module Selection
     init_object_from_row(row)
   end
 
-  # we need the ability to retrieve all records
-   # often necessary when you want to sort or filter data in a way
-   # that's more complex or requires more expressive language than SQL can handle
 
   def all
     rows = connection.execute <<-SQL
       SELECT #{columns.join ","}
       FROM #{table};
     SQL
+
+    rows_to_array(rows)
+  end
+
+  def where(*args)
+    if args.count > 1
+      expression = args.shift
+      params = args
+    else
+      case args.first
+      when String
+        expression = args.first
+      when Hash
+        expression_hash = BlocRecord::Utility.convert_keys(args.first)
+        expression = expression_hash.map { |key, value| "#{key}=#{BlocRecord::Utility.sql_strings(value)}"}.join(" and ")
+      end
+    end
+
+    sql = <<-SQL
+      SELECT #{coumns.join ","}
+      FROM #{table}
+      WHERE #{expression};
+    SQL
+
+    rows = connection.execute(sql, params)
+    rows_to_array(rows)
+  end
+
+  def order(*args)
+    if args.count > 1
+      order = args.join(",")
+    else
+      order = args.first.to_s
+    end
+
+    rows = connection.execute <<-SQL
+      SELECT *
+      FROM #{table}
+      ORDER BY #{order};
+    SQL
+
+    rows_to_array(rows)
+  end
+
+  def join(*args)
+    if args.count > 1
+      joins = args.map { |arg| "INNER JOIN #{arg} ON #{arg}.#{table}_id = #{table}.id" }.join(" ")
+      rows = connection.execute <<-SQL
+        SELECT * FROM #{table} #{joins}
+      SQL
+    else
+      case args.first
+      when String
+        rows = connection.execute <<-SQL
+          SELECT * FROM #{table} #{BlocRecord::Utility.sql_strings(args.first)};
+        SQL
+      when Symbol
+        rows = connection.execute <<-SQL
+          SELECT * FROM #{table}
+          INNER JOIN #{args.first} ON #{args.first}.#{table}_id = #{table}.id
+        SQL
+      end
+    end
 
     rows_to_array(rows)
   end
