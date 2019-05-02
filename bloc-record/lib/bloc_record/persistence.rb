@@ -28,16 +28,21 @@ module Persistence
     true
   end
 
-  # Update One Attribute With an Instance Method
+  # Update *One* Attribute With an Instance Method
+    # update_attribute passes self.class.update its own id and a hash of the attributes that should be updated
+    # self.class is used to gain access to an unknown object's class // We need this to call update since it is a class method rather than an instance method
   def update_attribute(attribute, value)
     self.class.update(self.id, { attribute => value })
   end
-  # update_attribute passes self.class.update its own id and a hash of the attributes that should be updated
-  # self.class is used to gain access to an unknown object's class // We need this to call update since it is a class method rather than an instance method
 
-  # Update Multiple Attributes With an Instance Method
+
+  # Update *Multiple* Attributes With an Instance Method
   def update_attributes(updates)
     self.class.update(self.id, updates)
+  end
+
+  def destroy
+    self.class.destroy(self.id)
   end
 
   module ClassMethods
@@ -73,7 +78,7 @@ module Persistence
       # This updates the specified columns in the database.
 
       if ids.class == Fixnum #non-floting number
-        where_clause = "WHERE id = #{id};"
+        where_clause = "WHERE id = #{ids};"
       elsif ids.class == Array
         where_clause = ids.empty? ? ";" : "WHERE id IN (#{ids.join(",")});"
         # ternary operator used. If nil, then we end the query using ;, otherwise we append the WHERE clause.
@@ -95,11 +100,69 @@ module Persistence
       true
     end
 
-    # Update Multiple Attributes on All Records
-    def update_all(updates)
-      update(nil, updates)
+
+    # Class ass. - Deleting one item
+    # A method that deletes one record given an ID:
+      # Entry.destroy(15)
+    # def destroy(id)
+    #   connection.execute <<-SQL
+    #     DELETE FROM #{table}
+    #     WHERE id = #{id};
+    #   SQL
+    #
+    #   true
+    # end
+
+    # Class ass. to multiple items
+    # This change allows this syntax:
+      #Entry.destroy(1, 2, 3)
+        #Which would result in this SQL query:
+          #DELETE FROM *entry*
+          #WHERE id IN (1,2,3);
+    def destroy(*id)
+      if id.length > 1
+        where_clause = "WHERE id IN (#{[id.join(",")]});"
+      else
+        where_clause = "WHERE id = #{id.first};"
+      end
+
+      connection.execute <<-SQL
+        DELETE FROM #{table}
+        #{where_clause}
+      SQL
+
+      true
     end
 
+    # Destroy all records
+      #  Entry.destroy_all
+    # def destroy_all
+    #   connection.execute <<-SQL
+    #     DELETE FROM #{table}
+    #   SQL
+    #
+    #   true
+    # end
+
+    # Destroy All Records With Conditions
+      # User.destroy_all(age: 20)
+      def destroy_all(conditions_hash=nil)
+        if conditions_hash && !conditions_hash.empty?
+          conditions_has = BlocRecord::Utility.convert_keys(conditions_hash)
+          conditions = conditions_hash.map { |key, value| "#{key}=#{BlocRecord::Utility.sql_strings(value)}" }.join(" and ")
+
+          connection.execute <<-SQL
+            DELETE FROM #{table}
+            WHERE #{conditions};
+          SQL
+        else
+            connection.execute <<-SQL
+              DELETE FROM #{table}
+            SQL
+        end
+
+        true
+      end
 
   end #ends ClassMethods
 end #ends Persistence

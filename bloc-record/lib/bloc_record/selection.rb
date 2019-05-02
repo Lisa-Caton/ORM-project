@@ -109,7 +109,7 @@ module Selection
     end
 
     sql = <<-SQL
-      SELECT #{coumns.join ","}
+      SELECT #{columns.join ","}
       FROM #{table}
       WHERE #{expression};
     SQL
