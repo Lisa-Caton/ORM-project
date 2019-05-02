@@ -3,22 +3,23 @@ require 'csv'
 require 'bloc_record/base'
 
 class AddressBook < BlocRecord::Base
-  attr_accessor :entries
+  # attr_accessor :entries
+  has_many :entries
 
   def initialize(options={})
     super
     @entries = []
   end
 
-  def add_entry(name, phone_number, email)
+  def add_entry(name, phone, email)
     Entry.create(name: name, phone_number: phone, email: email, address_book_id: self.id)
   end
 
   # entries returns an array of all of an address book's entries.
 
-  def entries
-      Entry.where(address_book_id: self.id)
-  end
+  # def entries
+  #     Entry.where(address_book_id: self.id)
+  # end
 
   # find_entry returns the first entry where name matches a specific name.
 
