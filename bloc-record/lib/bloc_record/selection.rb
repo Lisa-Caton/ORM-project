@@ -160,9 +160,7 @@ module Selection
   private
 
   # extract the code that converts a row into an object
-    # We don't always know an object's id. Let's add a method to allow us to retrieve
-    # records if we know the values of other attribues
-
+    # We don't always know an object's id. Let's add a method to allow us to retrieve records if we know the values of other attribues
   def init_object_from_row(row)
     if row
       data = Hash[columns.zip(row)]
@@ -171,9 +169,7 @@ module Selection
   end
 
   # this method maps the rows to an array of corresponding objects
-    # The zip method is a Ruby method which pairs items in the first
-    # object (columns) with items in the argument (row)
-
+    # The zip method is a Ruby method which pairs items in the first object (columns) with items in the argument (row)
   def rows_to_array(rows)
     # older code: rows.map{ |row| new(Hash[columns.zip(row)]) }
     collection = BlocRecord::Collection.new

@@ -148,7 +148,7 @@ module Persistence
       # User.destroy_all(age: 20)
       def destroy_all(conditions_hash=nil)
         if conditions_hash && !conditions_hash.empty?
-          conditions_has = BlocRecord::Utility.convert_keys(conditions_hash)
+          conditions_hash = BlocRecord::Utility.convert_keys(conditions_hash)
           conditions = conditions_hash.map { |key, value| "#{key}=#{BlocRecord::Utility.sql_strings(value)}" }.join(" and ")
 
           connection.execute <<-SQL

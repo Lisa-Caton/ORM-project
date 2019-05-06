@@ -3,7 +3,7 @@ require 'active_support/inflector'
 
 module Associations
   def has_many(association)
-    def define_method(association)
+    define_method(association) do
       # association will always be a plural noun
         # for example, :entries
         # self is an instance of AddressBook
